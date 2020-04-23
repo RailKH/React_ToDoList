@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDoList</title>
+    <script
+      src="https://unpkg.com/react@16/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style type="text/css">
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Roboto", sans-serif;
+        list-style: none;
+      }
+
+      .list_text {
+        display: flex;
+        width: auto;
+        justify-content: space-between;
+        padding: 10px;
+      }
+
+      .list_text span {
+        cursor: pointer;
+      }
+
+      .list_text span:hover {
+        color: red;
+      }
+
+      .list_text:hover {
+        background-color: #bebebe;
+      }
+
+      .content {
+        width: 300px;
+        margin: 20px auto;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      .content h1 {
+        margin-bottom: 10px;
+        color: #1924b1;
+      }
+
+      input[type="text"] {
+        flex-grow: 1;
+      }
+      input[type="submit"] {
+        padding: 5px;
+      }
+
+      form {
+        margin-bottom: 10px;
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      class Input_Text extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            value: "",
+          };
+
+          this.handleChange = this.handleChange.bind(this);
+          this.addText = this.addText.bind(this);
+        }
+
+        handleChange(e) {
+          if (this.state.value) {
+            this.setState({
+              value: "",
+            });
+            this.props.handleChange();
+          }
+          e.preventDefault();
+        }
+
+        addText(e) {
+          this.setState({
+            value: e.target.value,
+          });
+          this.props.handleChange(e);
+        }
+
+        render() {
+          return (
+            <form onSubmit={this.handleChange}>
+              <input
+                type="text"
+                onChange={this.addText}
+                value={this.state.value}
+              />
+              <input type="submit" value="Add" />
+            </form>
+          );
+        }
+      }
+
+      class List_To_Do extends React.Component {
+        render() {
+          const list = this.props.list.map((item, ind) => {
+            return (
+              <div className="list_text">
+                <li className="list_item" key={ind}>
+                  {item}
+                </li>
+                <span
+                  onClick={() => {
+                    this.props.deleteItem(ind);
+                  }}
+                >
+                  X
+                </span>
+              </div>
+            );
+          });
+          return <ul>{list}</ul>;
+        }
+      }
+
+      class App extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            list: props.list,
+            value: "",
+          };
+          this.handleChange = this.handleChange.bind(this);
+          this.deleteText = this.deleteText.bind(this);
+        }
+        // Удаление задачи
+        deleteText(e) {
+          this.state.list.splice(e, 1);
+          localStorage.clear();
+          localStorage.setItem("items", JSON.stringify(this.state.list));
+          this.setState({});
+        }
+        // Добавление списка задач
+        handleChange(e = null) {
+          if (e !== null) {
+            this.setState({
+              value: e.target.value,
+            });
+          } else {
+            this.state.list.push(this.state.value);
+            localStorage.setItem("items", JSON.stringify(this.state.list));
+            this.setState({
+              value: "",
+            });
+          }
+        }
+
+        render() {
+          return (
+            <div className="content">
+              <h1>ToDoList</h1>
+              <Input_Text handleChange={this.handleChange} />
+              <List_To_Do list={this.state.list} deleteItem={this.deleteText} />
+            </div>
+          );
+        }
+      }
+
+      // Получение массива с LocalStorage
+      const itemsArray = JSON.parse(localStorage.getItem("items")) || [];
+
+      ReactDOM.render(
+        <App list={itemsArray} />,
+        document.getElementById("root")
+      );
+    </script>
+  </body>
+</html>
